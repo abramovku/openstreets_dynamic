@@ -4,6 +4,7 @@ namespace App\Services\Venzor;
 
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class VenzorClient
 {
@@ -16,25 +17,19 @@ class VenzorClient
 
     /**
      * @param string $link
-     * @return array|mixed
-     * @throws RequestException
+     * @return mixed
      */
     public function get(string $link)
     {
         return $this->httpClient
             ->get($link)
             ->throw(function ($response, $e) use ($link) {
-                $this->logData(
-                    'roistat',
-                    'Data get error',
-                    ['log_data' => [
-                        'code' => $e->getCode(),
-                        'link' => $link,
-                        'message' => $e->getMessage(),
-                        'method' => 'get'
-                    ]],
-                    'error'
-                );
+                Log::channel('venzor')->error('Client error', ['log_data' => [
+                    'code' => $e->getCode(),
+                    'link' => $link,
+                    'message' => $e->getMessage(),
+                    'method' => 'get'
+                ]]);
             })->json();
     }
 }

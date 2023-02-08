@@ -2,6 +2,7 @@
 
 namespace App\Services\Venzor;
 
+use Illuminate\Support\Facades\Log;
 
 class Venzor
 {
@@ -16,7 +17,8 @@ class Venzor
 
     public function get_nodes_data()
     {
-
+        Log::channel('venzor')->
+        $response = $this->client->get('nodes_with_active_pos');
     }
 
 }
