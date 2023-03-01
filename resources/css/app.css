@@ -1,15 +1,3 @@
 @import 'leaflet/dist/leaflet.css';
 
-html, body {
-    height: 100%;
-    padding: 0;
-    margin: 0;
-}
-#map {
-    /* configure the size of the map */
-    width: 100%;
-    height: 100%;
-}
-.leaflet-attribution-flag {
-    display: none !important;
-}
+

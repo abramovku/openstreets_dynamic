@@ -1,1 +1,58 @@
+html, body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+#page-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    #map {
+        /* configure the size of the map */
+        width: 100%;
+        height: 75vh;
+
+        .leaflet-attribution-flag {
+            display: none !important;
+        }
+    }
+
+    #nodes-table-wrapper {
+        width: 100%;
+        max-height: 25vh;
+        overflow-y: scroll;
+        height: auto;
+
+        #nodes-table{
+            display: table;
+            width: 100%;
+
+            .line {
+                display: table-row;
+
+                &> div {
+                    display: table-cell;
+                    border: 1px solid #dddddd;
+                    text-align: center;
+                    padding: 10px;
+                }
+            }
+
+            .head {
+                display: table-row;
+
+                &> div {
+                    display: table-cell;
+                    border: 1px solid #dddddd;
+                    text-align: center;
+                    padding: 10px;
+                    font-weight: bold;
+                }
+            }
+        }
+
+    }
+}
+
 

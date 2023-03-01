@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,5 +16,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('frontend.templates.main');
-    //return view('welcome');
 });
+
+Route::get('map', [MapController::class, 'index']);
+Route::post('map/init', [MapController::class, 'data'])->name('map.init_data');
+Route::post('map/get_node_data_by_id', [MapController::class, 'dataNode'])->name('map.node_info');
+Route::post('map/get_node_data_by_date', [MapController::class, 'dataNode'])->name('map.node_info_date');

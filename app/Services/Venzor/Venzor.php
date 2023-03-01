@@ -6,19 +6,37 @@ use Illuminate\Support\Facades\Log;
 
 class Venzor
 {
-    private $client;
-    private $config;
+    private VenzorClient $client;
 
-    public function __construct($config)
+    public function __construct(array $config)
     {
-        $this->config = $config;
         $this->client = new VenzorClient($config);
     }
 
-    public function get_nodes_data()
+    public function getNodesData(): array
     {
-        Log::channel('venzor')->
-        $response = $this->client->get('nodes_with_active_pos');
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => []]);
+        $result = $this->client->get('nodes_with_active_pos');
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => $result]);
+
+        return $result;
     }
 
+    public function getNodeDataById(array $data): array
+    {
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => []]);
+        $result = $this->client->post('get_pos_by_node_id', $data);
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => $result]);
+
+        return $result;
+    }
+
+    public function getNodeDataByIdAndPeriod(array $data): array
+    {
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => []]);
+        $result = $this->client->post('get_node_pos_for_period', $data);
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => $result]);
+
+        return $result;
+    }
 }

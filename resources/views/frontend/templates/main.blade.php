@@ -1,5 +1,5 @@
 @extends('frontend.layouts.app')
 
 @section('content')
-    <div id="map"></div>
+    <p>some text here</p>
 @endsection

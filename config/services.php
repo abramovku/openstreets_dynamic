@@ -33,5 +33,7 @@ return [
 
     'venzor' => [
         'link' => env('VENZOR_LINK'),
+        'center_lon' => env('VENZOR_CENTER_MAP_LON'),
+        'center_lat' => env('VENZOR_CENTER_MAP_LAT'),
     ]
 ];
