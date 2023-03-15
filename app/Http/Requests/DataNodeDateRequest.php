@@ -24,9 +24,10 @@ class DataNodeDateRequest extends FormRequest
     public function rules()
     {
         return [
-            'node_id' => 'required|string',
-            'data_start' => 'required|date',
-            'data_end' => 'required|date',
+            'node_id' => 'required|array',
+            'date_start' => 'required|string',
+            'date_end' => 'required|string',
+            'limit' => 'sometimes|required|integer',
         ];
     }
 }

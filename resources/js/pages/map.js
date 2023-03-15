@@ -1,4 +1,8 @@
 import 'leaflet';
+import 'bootstrap';
+import 'bootstrap-datepicker';
+import 'bootstrap-datepicker/js/locales/bootstrap-datepicker.ru.js';
+
 
 var MapPage = {
     options: {
@@ -19,27 +23,45 @@ var MapPage = {
         date: 'Дата',
         time: 'Время'
     },
-    oper_type: 'get_all',
-    sendTimeout: 30000,
+    operation_type: 'get_all',
+    sendTimeout: 60000,
+    date_start: null,
+    date_end: null,
     instance: null,
+    list: [],
     nodes: {},
     init() {
         this.generateTableHead();
         this.initMap();
         this.fetchAllNodes();
+        this.fetchNodesList();
         this.setEvents();
     },
     setEvents(){
         $(this.selectors.nodeSelector).on('change',this.nodeSelected.bind(this));
+
+        $(document).on('changeDate',this.dateChanged.bind(this));
+        $(document).on('clearDate',this.dateCleared.bind(this));
+        $(document).on('date_cleared',this.dateUpdated.bind(this));
+        $(document).on('date_updated',this.dateUpdated.bind(this));
+
         $(document).on('all_data_updated', this.updateAllData.bind(this));
+        $(document).on('node_list_updated', this.receivedNodeList.bind(this));
+        $(document).on('node_data_updated', this.updateNodeData.bind(this));
     },
-    nodeSelected(e) {
-        console.log(e.target.value);
-        this.fetchNodeById(e.target.value);
-    },
-    getAllData() {
+    process() {
         setTimeout(() => {
-            this.fetchAllNodes();
+                switch (this.operation_type) {
+                    case 'get_all':
+                        this.fetchAllNodes();
+                        break;
+                    case 'single_node':
+                        this.fetchNodeById();
+                        break;
+                    case 'single_node_date':
+                        this.fetchNodeByIdDate();
+                        break;
+                }
         }, this.sendTimeout);
     },
     initMap: function () {
@@ -57,66 +79,15 @@ var MapPage = {
         // show the scale bar on the lower left corner
         L.control.scale({imperial: true, metric: true}).addTo(map);
     },
-    fetchNodeById(node) {
-        let that = this;
-        this.instance = $.ajax({
-            url: $(this.selectors.pageWraper).data('url_node'),
-            data: {node_id: node},
-            method: "post"
-        }).done(function (response) {
-            console.log(response);
-        }).fail(function (response) {
-            console.log('request error');
-        });
-    },
-    fetchAllNodes() {
-        let that = this;
-        this.instance = $.ajax({
-            url: $(this.selectors.pageWraper).data('url'),
-            method: "post"
-        }).done(function (response) {
-            $.event.trigger(
-                'all_data_updated',
-                response
-            );
-            that.getAllData();
-        }).fail(function (response) {
-            console.log('request error');
-        });
-    },
-    updateAllData(e, data) {
-        if((data.data).length && typeof (data.data) === 'object' ){
-            //empty nodes anв remove from map
-            this.removeNodes();
-            this.removeTableLines();
-            this.initNodeSelector();
 
-            let that = this;
-            $.each(data.data, function (index, value){
-                let data = value.position;
-                let name = value.node_id;
-                that.addNode(name, data);
-            });
+    addNode(name, data, index, single = false) {
+        var title = name;
+        if(single) {
+            title += ' ' + data.date + ' ' + data.time;
         }
-    },
-    initNodeSelector() {
-        $(this.selectors.nodeSelector + ' options').siblings().not(':first').remove();
-    },
-    addNodeToSelector(id) {
-        $(this.selectors.nodeSelector).append($('<option>', {
-            value: id,
-            text: id
-        }));
-    },
-    addNode(name, data) {
-        this.nodes[name] = L.marker([data.latitude, data.longitude]).addTo(map)
-            .bindTooltip(name, {permanent: true});
+        this.nodes[name + '_' + index] = L.marker([data.latitude, data.longitude]).addTo(map)
+            .bindTooltip(title, {permanent: true});
         this.addNodeToTable(name, data);
-        this.addNodeToSelector(name);
-    },
-    addNodeToTable(name, data) {
-        let line = this.generateTableLine(name, data);
-        $(this.selectors.table).append(line);
     },
     removeNodes() {
         if($.isEmptyObject(this.nodes) == false) {
@@ -126,10 +97,16 @@ var MapPage = {
             }
         }
     },
+
+    //table
     removeTableLines() {
         $(this.selectors.table + ' ' + this.selectors.tableLine).each(function (){
             $(this).remove();
         });
+    },
+    addNodeToTable(name, data) {
+        let line = this.generateTableLine(name, data);
+        $(this.selectors.table).append(line);
     },
     generateTableLine(name, data) {
         let line = "<div class='line'>";
@@ -150,8 +127,173 @@ var MapPage = {
         line += "</div>";
 
         $(this.selectors.table).append(line);
-    }
+    },
+    //table
 
+    //node selector
+    emptyNodeSelector() {
+        $(this.selectors.nodeSelector + ' option').siblings().not(':first').remove();
+    },
+    addNodeToSelector(id) {
+        $(this.selectors.nodeSelector).append($('<option>', {
+            value: id,
+            text: id
+        }));
+    },
+    //node selector
+
+    //event callbacks
+    updateNodeData(e, data) {
+        //empty nodes and remove from map
+        this.removeNodes();
+        this.removeTableLines();
+        if((data.data.position).length && typeof (data.data.position) === 'object' ) {
+            let that = this;
+            let name = data.data.node_id;
+            $.each(data.data.position, function (index, value) {
+                that.addNode(name, value, index, true);
+            });
+        }
+    },
+    nodeSelected(e) {
+        console.log(e.target.value);
+        if(e.target.value == 'all') {
+            this.operation_type = 'get_all';
+            this.list=[];
+            this.fetchAllNodes();
+        } else {
+            this.list=[e.target.value];
+            if(this.date_start != null && this.date_end != null ) {
+                this.operation_type = 'single_node_date';
+                this.fetchNodeByIdDate();
+            } else {
+                this.operation_type = 'single_node';
+                this.fetchNodeById();
+            }
+        }
+    },
+    dateChanged(e) {
+        console.log(e.target.value);
+        if(e.target.name == 'date_start') {
+            this.date_start = e.target.value;
+        }
+        if(e.target.name == 'date_end') {
+            this.date_end = e.target.value;
+        }
+        if(this.date_start != null && this.date_end != null) {
+            console.log('date');
+            $.event.trigger('date_updated');
+        }
+    },
+    dateCleared(e) {
+        if(e.target.name == 'date_start') {
+            this.date_start = null;
+        }
+        if(e.target.name == 'date_end') {
+            this.date_end = null;
+        }
+        $.event.trigger('date_cleared');
+    },
+    dateUpdated() {
+        let select = $(this.selectors.nodeSelector).val();
+        console.log(select);
+        if(select == 'all') {
+            this.operation_type = 'get_all';
+            this.fetchAllNodes();
+        } else {
+            if(this.date_start != null && this.date_end != null) {
+                this.operation_type = 'single_node_date';
+                this.fetchNodeByIdDate(select, this.date_start, this.date_end);
+            } else {
+                this.operation_type = 'single_node';
+                this.fetchNodeById(select);
+            }
+        }
+    },
+    updateAllData(e, data) {
+        //empty nodes and remove from map
+        this.removeNodes();
+        this.removeTableLines();
+        if((data.data).length && typeof (data.data) === 'object' ) {
+            let that = this;
+            $.each(data.data, function (index, value){
+                let data = value.position;
+                let name = value.node_id;
+                that.addNode(name, data, index);
+            });
+        }
+    },
+    receivedNodeList(e, data) {
+        let that = this;
+        $.each(data.data, function (index, value){
+            that.addNodeToSelector(value);
+        });
+    },
+    //event callbacks
+
+    //ajax
+    fetchNodeById() {
+        let that = this;
+        this.instance = $.ajax({
+            url: $(this.selectors.pageWraper).data('url_node'),
+            data: {node_id: this.list},
+            method: "post"
+        }).done(function (response) {
+            $.event.trigger(
+                'node_data_updated',
+                response
+            );
+            that.process();
+        }).fail(function (response) {
+            console.log('request error');
+        });
+    },
+    fetchNodeByIdDate() {
+        let that = this;
+        this.instance = $.ajax({
+            url: $(this.selectors.pageWraper).data('url_node_date'),
+            data: {node_id: this.list, date_start: this.date_start, date_end:this.date_end},
+            method: "post"
+        }).done(function (response) {
+            $.event.trigger(
+                'node_data_updated',
+                response
+            );
+            that.process();
+        }).fail(function (response) {
+            console.log('request error');
+        });
+    },
+    fetchAllNodes() {
+        let that = this;
+        this.instance = $.ajax({
+            url: $(this.selectors.pageWraper).data('url'),
+            method: "post"
+        }).done(function (response) {
+            $.event.trigger(
+                'all_data_updated',
+                response
+            );
+            that.process();
+        }).fail(function (response) {
+            console.log('request error');
+        });
+    },
+    fetchNodesList() {
+        let that = this;
+        this.instance = $.ajax({
+            url: $(this.selectors.pageWraper).data('url_node_list'),
+            method: "post"
+        }).done(function (response) {
+            $.event.trigger(
+                'node_list_updated',
+                response
+            );
+        }).fail(function (response) {
+            console.log('request error');
+        });
+    },
+    //ajax
 }
 
 MapPage.init();

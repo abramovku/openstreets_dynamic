@@ -11,6 +11,6 @@ export default defineConfig({
                 'resources/js/pages/map.js'
             ],
             refresh: true,
-        }),
-    ],
+        })
+    ]
 });
