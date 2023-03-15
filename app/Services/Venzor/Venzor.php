@@ -16,16 +16,16 @@ class Venzor
     public function getNodesData(): array
     {
         Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => []]);
-        $result = $this->client->get('nodes_with_active_pos');
-        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => $result]);
+        $nodes = $this->client->get('nodes_with_active_pos');
+        Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => $nodes]);
 
-        return $result;
+        return $nodes;
     }
 
     public function getNodeDataById(array $data): array
     {
         Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => []]);
-        $result = $this->client->post('get_pos_by_node_id', $data);
+        $result = $this->client->post('get_positions_by_node_id', $data);
         Log::channel('venzor')->info(__FUNCTION__ . 'send', ['log_data' => $result]);
 
         return $result;

@@ -24,7 +24,7 @@ class DataNodeRequest extends FormRequest
     public function rules()
     {
         return [
-            'node_id' => 'required|string',
+            'node_id' => 'required|array',
             'limit' => 'sometimes|required|integer',
         ];
     }

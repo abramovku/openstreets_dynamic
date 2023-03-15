@@ -1,3 +1,14 @@
+@import 'bootstrap/scss/bootstrap';
+
+$fa-font-path: "@fortawesome/fontawesome-free/webfonts";
+// Font Awesome
+@import "@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "@fortawesome/fontawesome-free/scss/solid.scss";
+@import "@fortawesome/fontawesome-free/scss/brands.scss";
+@import "@fortawesome/fontawesome-free/scss/regular.scss";
+
+@import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
+
 html, body {
     height: 100%;
     padding: 0;
@@ -7,6 +18,14 @@ html, body {
     width: 100%;
     height: 100%;
     position: relative;
+
+    #controls {
+        padding: 10px;
+
+        .input-group-addon{
+            padding: 0 15px;
+        }
+    }
 
     #map {
         /* configure the size of the map */
